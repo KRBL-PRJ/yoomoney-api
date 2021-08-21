@@ -9,11 +9,14 @@ from yoomoney.exceptions import (
     )
 
 class Authorize:
+    token = None
+
     def __init__(
             self,
             client_id: str,
             redirect_uri: str,
-            scope: List[str]
+            scope: List[str],
+            client_secret: str = ""
                   ):
 
         url = "https://yoomoney.ru/oauth/authorize?client_id={client_id}&response_type=code" \
@@ -31,6 +34,8 @@ class Authorize:
         if response.status_code == 200:
             print("Visit this website and confirm the application authorization request:")
             print(response.url)
+        else:
+            print(f'Something is wrong. Status code: {response.status_code}')
 
         code = str(input("Enter redirected url (https://yourredirect_uri?code=XXXXXXXXXXXXX) or just code: "))
         try:
@@ -38,11 +43,12 @@ class Authorize:
         except:
             pass
 
-        url = "https://yoomoney.ru/oauth/token?code={code}&client_id={client_id}&" \
-              "grant_type=authorization_code&redirect_uri={redirect_uri}".format(code=str(code),
-                                                                                 client_id=client_id,
-                                                                                 redirect_uri=redirect_uri,
-                                                                                 )
+        if client_secret == "":
+            url = f'https://yoomoney.ru/oauth/token?code={code}&client_id={client_id}&' + \
+                  f'grant_type=authorization_code&redirect_uri={redirect_uri}'
+        else:
+            url = f'https://yoomoney.ru/oauth/token?code={code}&client_id={client_id}&' + \
+                  f'grant_type=authorization_code&redirect_uri={redirect_uri}&client_secret={client_secret}'
 
         response = requests.request("POST", url, headers=headers)
 
@@ -56,7 +62,7 @@ class Authorize:
                 raise InvalidGrant()
 
         if response.json()['access_token'] == "":
+            print("Token is empty. Maybe you missed client_secret?")
             raise EmptyToken()
 
-        print("Your access token:")
-        print(response.json()['access_token'])
+        self.token = response.json()['access_token']

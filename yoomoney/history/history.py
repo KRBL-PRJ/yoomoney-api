@@ -15,6 +15,15 @@ from yoomoney.exceptions import (
     TechnicalError
     )
 
+operation_params = [
+    "error", "operation_id", "status", "pattern_id",
+    "direction", "amount", "amount_due", "fee", "datetime",
+    "title", "sender", "recipient", "recipient_type",
+    "message", "comment", "codepro", "protection_code",
+    "expires", "answer_datetime", "label", "details",
+    "type", "digital_goods"
+]
+
 
 class History:
     def __init__(self,
@@ -87,7 +96,6 @@ class History:
             else:
                 raise TechnicalError()
 
-
         self.next_record = None
         if "next_record" in data:
             self.next_record = data["next_record"]
@@ -95,55 +103,14 @@ class History:
         self.operations = list()
         for operation_data in data["operations"]:
             param = {}
-            if "operation_id" in operation_data:
-                param["operation_id"] = operation_data["operation_id"]
-            else:
-                param["operation_id"] = None
-            if "status" in operation_data:
-                param["status"] = operation_data["status"]
-            else:
-                param["status"] = None
-            if "datetime" in operation_data:
-                param["datetime"] = datetime.strptime(str(operation_data["datetime"]).replace("T", " ").replace("Z", ""), '%Y-%m-%d %H:%M:%S')
-            else:
-                param["datetime"] = None
-            if "title" in operation_data:
-                param["title"] = operation_data["title"]
-            else:
-                param["title"] = None
-            if "pattern_id" in operation_data:
-                param["pattern_id"] = operation_data["pattern_id"]
-            else:
-                param["pattern_id"] = None
-            if "direction" in operation_data:
-                param["direction"] = operation_data["direction"]
-            else:
-                param["direction"] = None
-            if "amount" in operation_data:
-                param["amount"] = operation_data["amount"]
-            else:
-                param["amount"] = None
-            if "label" in operation_data:
-                param["label"] = operation_data["label"]
-            else:
-                param["label"] = None
-            if "type" in operation_data:
-                param["type"] = operation_data["type"]
-            else:
-                param["type"] = None
 
+            for p in operation_params:
+                if p in operation_data:
+                    param[p] = operation_data[p]
+                else:
+                    param[p] = None
 
-            operation = Operation(
-                operation_id= param["operation_id"],
-                status=param["status"],
-                datetime=datetime.strptime(str(param["datetime"]).replace("T", " ").replace("Z", ""), '%Y-%m-%d %H:%M:%S'),
-                title=param["title"],
-                pattern_id=param["pattern_id"],
-                direction=param["direction"],
-                amount=param["amount"],
-                label=param["label"],
-                type=param["type"],
-            )
+            operation = Operation(param)
             self.operations.append(operation)
 
 
